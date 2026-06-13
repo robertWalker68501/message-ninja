@@ -7,6 +7,7 @@ import path from 'path';
 
 import { clerkMiddleware } from '@clerk/express';
 import { connectDB } from './lib/db.js';
+import job from './lib/cron.js';
 
 const app = express();
 
@@ -42,6 +43,8 @@ async function startServer() {
   app.listen(PORT, () => {
     console.log('Server is up and running on port: ', PORT);
   });
+
+  if (process.env.NODE_ENV === 'production') job.start();
 }
 
 startServer();
