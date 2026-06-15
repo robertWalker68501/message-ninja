@@ -11,8 +11,7 @@ import job from './lib/cron.js';
 import clerkWebhook from './webhooks/clerk.webhook.js';
 import authRoutes from './routes/auth.route.js';
 import messageRoutes from './routes/message.route.js';
-
-const app = express();
+import { app, server } from './lib/socket.js';
 
 dns.setServers(['8.8.8.8', '8.8.4.4']);
 
@@ -54,7 +53,7 @@ if (fs.existsSync(publicDir)) {
 async function startServer() {
   await connectDB();
 
-  app.listen(PORT, () => {
+  server.listen(PORT, () => {
     console.log('Server is up and running on port: ', PORT);
   });
 
