@@ -37,18 +37,12 @@ function ChatPage() {
   }, [getMessages, activeConversationId]);
 
   useEffect(() => {
-    if (!activeConversationId || !socket) return;
+    if (!socket) return;
 
-    subscribeToMessages(activeConversationId);
+    const unsubscribe = subscribeToMessages();
 
-    // cleanup
-    return () => unsubscribeFromMessages();
-  }, [
-    activeConversationId,
-    socket,
-    subscribeToMessages,
-    unsubscribeFromMessages,
-  ]);
+    return () => unsubscribe?.();
+  }, [socket, subscribeToMessages]);
 
   return (
     <div

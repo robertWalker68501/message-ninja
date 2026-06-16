@@ -88,21 +88,44 @@ export const useChatStore = create(
         }
       },
 
-      subscribeToMessages: (userId) => {
-        if (!userId) return;
-
+      subscribeToMessages: () => {
         const socket = useAuthStore.getState().socket;
-        if (!socket) return;
+        if (!socket) return () => {};
 
-        socket.off('newMessage');
-        socket.on('newMessage', (newMessage) => {
-          // if im not the receiver don't do anything just return
-          if (String(newMessage.senderId) !== String(userId)) return;
+        const handleNewMessage = (newMessage) => {
+          const { activeConversationId, messages } = get();
+          const authUserId = useAuthStore.getState().authUser?._id;
 
-          set({ messages: [...get().messages, newMessage] });
+          const senderId = String(newMessage.senderId);
+          const receiverId = String(newMessage.receiverId);
+          const currentConversationId = activeConversationId
+            ? String(activeConversationId)
+            : null;
+
+          const isRelevantConversation =
+            currentConversationId &&
+            (currentConversationId === senderId ||
+              currentConversationId === receiverId);
+
+          const isForCurrentUser =
+            authUserId &&
+            (String(authUserId) === senderId ||
+              String(authUserId) === receiverId);
+
+          if (!isForCurrentUser) return;
 
           get().getConversations();
-        });
+
+          if (!isRelevantConversation) return;
+
+          set({ messages: [...messages, newMessage] });
+        };
+
+        socket.on('newMessage', handleNewMessage);
+
+        return () => {
+          socket.off('newMessage', handleNewMessage);
+        };
       },
 
       unsubscribeFromMessages: () => {
