@@ -6,6 +6,7 @@ import ChatSidebar from '../components/chat/ChatSidebar';
 import { ChatHeader } from '../components/chat/ChatHeader';
 import { MessageList } from '../components/chat/MessageList';
 import { ChatComposer } from '../components/chat/ChatComposer';
+import { useAuthStore } from '../store/useAuthStore';
 
 function ChatPage() {
   const { frameStyle } = useWallpaper();
@@ -19,6 +20,7 @@ function ChatPage() {
   const unsubscribeFromMessages = useChatStore(
     (state) => state.unsubscribeFromMessages
   );
+  const socket = useAuthStore((state) => state.socket);
 
   const { activeConversation, activeConversationId, isLargeScreen } =
     useSelectedConversation();
@@ -32,13 +34,18 @@ function ChatPage() {
     if (!activeConversationId) return;
 
     getMessages(activeConversationId);
+  }, [getMessages, activeConversationId]);
+
+  useEffect(() => {
+    if (!activeConversationId || !socket) return;
+
     subscribeToMessages(activeConversationId);
 
     // cleanup
     return () => unsubscribeFromMessages();
   }, [
-    getMessages,
     activeConversationId,
+    socket,
     subscribeToMessages,
     unsubscribeFromMessages,
   ]);
